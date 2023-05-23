@@ -19,9 +19,9 @@
  * @author Stysk
  *
  * @help SpecifySubstitute.js
- * 
  * 身代わりの仕様を変更。自動は廃止し、指定した仲間とします。
- * 仕様：
+ * 
+ * ■仕様
  * ・仲間のみを指定することを想定しています。
  * ・エネミーからのダメージやスキルに対応。
  * ・今のところエネミー側はこのスキルを利用できません。
@@ -31,8 +31,8 @@
  * 
  * ■使い方
  * デフォルトの「かばう」のスキルを、味方単体指定に変更するだけです。
- *  （正確には、スキルにステート付加「かばう」がついており、
- *    ステートかばうには、特殊フラグ身代わりがついていること）
+ * （正確には、スキルにステート付加「かばう」がついており、
+ *  ステートかばうには、特殊フラグ身代わりがついていること）
  * 
  * 
  * ■利用規約
@@ -56,41 +56,37 @@
         this._Stysk_subsutituteTargetId = null;
     };    
 
-    // スキル効果ステート付与処理前に、身代わり特殊処理を追加
-    //  対象指定のスキルとしてかばうを使う前提
+    // ステート付与処理前に、身代わり特殊処理を追加
+    //  かばうを対象指定のスキルとして使う前提である
     //  このままだと指定した対象に身代わりステートを付与することになるので、反転させ、自分に付与とする
     //  お互いのインスタンスに、お互いのIDを記憶（誰が誰をかばうのか）
     const _itemEffectAddState = Game_Action.prototype.itemEffectAddState;
     Game_Action.prototype.itemEffectAddState = function(target, effect) {
-        // console.log("itemeffect target effect",target.actorId(), effect); 
+        // ステートが身代わり時のみ処理
         if(effect.code == 21 && effect.dataId == 19){
             const subId = this.subject().actorId();
             const targetId = target.actorId();
+            
             if(subId != targetId){
                 this.makeSuccess(target);
 
                 target._Stysk_subsutituteFriends[subId] = this.subject();
                 this.subject()._Stysk_subsutituteTargetId = targetId;
-                // console.log("subsitite target", targetId, target._Stysk_subsutituteFriends);
     
                 target = this.subject();
-                // console.log("subsitite subject", target.actorId());
             }
         }
         _itemEffectAddState.call(this, target, effect);
     };
 
-    // 被ダメージの身代わり判定
+    // 被ダメージ時、指定した相手のみを身代わり判定
     BattleManager.applySubstitute = function(target) {
+        // 攻撃側はエネミーであること
         if (!this._action.subject().isActor()) {
-            // console.log("target", target.actorId());
-            
             // 仲間の中に自分を守るステート持ってる人がいるかどうか
             const friends = target._Stysk_subsutituteFriends;
-            // console.log("friends",friends);
             for(let key in friends){
                 const fr = friends[key];
-                // console.log("key frId, frTargetId", key, fr.actorId(), fr._Stysk_subsutituteTargetId);
                 if(fr.isSubstitute() && fr._Stysk_subsutituteTargetId == target.actorId() ){
                     this._logWindow.displaySubstitute(fr, target);
                     target = fr;
@@ -99,14 +95,13 @@
                     delete target._Stysk_subsutituteFriends[key];
                 }
             }
-
         }
         return target;
     };
 
 
-
     /*
+     * 身代わり時に、対象の前に立ってくれるプラグイン
      * (改変) 身代わり表示 KRD_MZ_UI_Substitute.js   (c) 2021 kuroudo119 (くろうど)
      */
     const KRD_BattleManager_applySubstitute = BattleManager.applySubstitute;
