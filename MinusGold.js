@@ -18,7 +18,7 @@
  * @help MinusGold.js
  * 
  * ■仕様
- * 所持金-9999999999までのマイナスが可能。
+ * 所持金-99999999までのマイナスが可能。
  * ショップでの購入時、所持金制限なし。
  * 
  * ■使い方
@@ -33,13 +33,17 @@
 (() => {
     'use strict';
  
+    const limitGold = 99999999;
+
+    // 所持金0以下にする
     Game_Party.prototype.gainGold = function(amount) {
-        this._gold = (this._gold + amount).clamp(-9999999999, this.maxGold());
+        this._gold = (this._gold + amount).clamp(-1 * limitGold, this.maxGold());
         //this._gold = (this._gold + amount).clamp(0, this.maxGold());
     };
 
+    // 購入時の限度額上限を所持金ではなく上げる
     Scene_Shop.prototype.money = function() {
-        return 9999999999;
+        return limitGold; 
         // return this._goldWindow.value();
     };
     
